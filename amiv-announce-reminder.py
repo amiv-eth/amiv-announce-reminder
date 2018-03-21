@@ -9,7 +9,9 @@ from config import (USER,
                     PASSWORD,
                     INFOVORSTAND_FIRST_NAME,
                     INFOVORSTAND_LAST_NAME,
-                    DEADLINE_TIME)
+                    DEADLINE_TIME,
+                    DAYS_REMINDER_DEADLINE,
+                    DAYS_DEADLINE_ANNOUNCE)
 
 
 TESTING = not (len(sys.argv) > 1 and sys.argv[1] == '--notest')
@@ -61,26 +63,24 @@ def main():
     # Set locale
     locale.setlocale(locale.LC_ALL, '')
 
-    # Read 'reminder fridays'
-    with open('fridays.txt') as friday_file:
-        FRIDAYS = friday_file.readlines()
+    # Read 'reminder days'
+    with open('reminder_day.txt') as reminder_file:
+        REMINDER_DAYS = reminder_file.readlines()
     
     # Strip whitespace
-    FRIDAYS = [friday.strip() for friday in FRIDAYS]
+    REMINDER_DAYS = [reminder_day.strip() for reminder_day in REMINDER_DAYS]
 
-    # Check if today is a reminder Friday
+    # Check if today is a reminder day
     TODAY = date.today()
-    for friday in FRIDAYS:
+    for reminder_day in REMINDER_DAYS:
         # Skip blank lines
-        if not friday:
+        if not reminder_day:
             continue
 
-        if TODAY == datetime.strptime(friday, '%d.%m.%Y').date():
-            # Deadline is Tuesday, 4 days after Friday
-            DEADLINE = datetime.combine(TODAY + timedelta(days=4), DEADLINE_TIME).strftime('%A, %d. %B, %H:%M Uhr')
-
-            # Announce is send Wednesday, 5 days after Friday
-            ANNOUNCE_DATE = (TODAY + timedelta(days=5)).strftime('%A, %d. %B')
+        if TODAY == datetime.strptime(reminder_day, '%d.%m.%Y').date():
+            # Calculate relevant times
+            DEADLINE = datetime.combine(TODAY + timedelta(days=DAYS_REMINDER_DEADLINE), DEADLINE_TIME).strftime('%A, %d. %B, %H:%M Uhr')
+            ANNOUNCE_DATE = (TODAY + timedelta(days=DAYS_REMINDER_DEADLINE) + timedelta(DAYS_DEADLINE_ANNOUNCE)).strftime('%A, %d. %B')
 
             # Go, go, go!
             send_reminder(ANNOUNCE_DATE, DEADLINE)
